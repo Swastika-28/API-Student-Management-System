@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Academic Performance Transcripts</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            /* Using standard page margins */
+            margin: 20mm 15mm 20mm 15mm;
+
+            @bottom-right {
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: 'Helvetica', Arial, sans-serif;
+                font-size: 9px;
+                color: #7f8c8d;
+            }
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        /* Container that ensures each student report starts on a fresh page */
+        .student-report-page {
+            page-break-after: always;
+        }
+
+        /* Prevents an empty trailing page after the final student record */
+        .student-report-page:last-child {
+            page-break-after: avoid;
+        }
+
+        .header-card {
+            background-color: #2c3e50;
+            color: white;
+            padding: 24px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .header-card h2 {
+            margin-top: 0;
+            color: #ecf0f1;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+
+        .info-grid {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        h3 {
+            page-break-after: avoid; /* Prevents orphaned headers */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        tr {
+            page-break-inside: avoid; /* Prevents rows from spliting across pages */
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .status-completed {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: #d35400;
+            font-style: italic;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            padding: 20px;
+            font-style: italic;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="student-report-page" th:each="report : ${reports}">
+
+    <div class="header-card">
+        <h2>Academic Performance Transcript</h2>
+        <div class="info-grid">
+            <p><strong>Student ID:</strong> <span th:text="${report.sId}"></span></p>
+            <p><strong>Student Name:</strong> <span th:text="${report.fullName}"></span></p>
+            <p><strong>Course Title:</strong> <span th:text="${report.title}"></span></p>
+            <p><strong>Cumulative Average:</strong>
+                <span th:text="${report.avgGrade != null ? #numbers.formatDecimal(report.avgGrade, 1, 2) : '0.00'}"></span>
+            </p>
+        </div>
+    </div>
+
+    <h3>Detailed Assignment Breakdown</h3>
+
+    <table th:if="${not #lists.isEmpty(report.assignments)}">
+        <thead>
+        <tr>
+            <th style="width: 25%;">Assignment Name</th>
+            <th style="width: 40%;">Obtained Grade</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="assignment : ${report.assignments}" th:class="${assignment.status=='Completed' ? 'status-completed':'status-pending'}">
+            <td th:text="${assignment.assignmentName}"></td>
+            <td th:text="${assignment.grade != null ? #numbers.formatDecimal(assignment.grade, 1, 2) : '0.00'}">
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${#lists.isEmpty(report.assignments)}" class="no-data" style="border: 1px dashed #bdc3c7;">
+        No assignment records found for this enrollment.
+    </div>
+
+</div>
+
+</body>
+</html>
