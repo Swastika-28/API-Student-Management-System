@@ -124,6 +124,26 @@ public class EducationRepo {
         return db.query(sql, new StudentResultSetExtractor());
     }
 
+    public Integer countSId(Long sId){
+        String sql="SELECT COUNT(*) FROM students" +
+                "WHERE student_id=:student_id";
+        MapSqlParameterSource param=new MapSqlParameterSource();
+        param.addValue("student_id",sId);
+        return db.queryForObject(sql, param, Integer.class);
+    }
+
+    public void uploadDoc(Long student_id,String additional_documents){
+        String sql="UPDATE students " +
+                "SET additional_documents=:additional_documents" +
+                "WHERE student_id=:student_id";
+        MapSqlParameterSource param=new MapSqlParameterSource();
+        param.addValue("student_id",student_id);
+        param.addValue("additional_documents",additional_documents);
+        db.update(sql,param);
+    }
+
+
+
 
 
 }

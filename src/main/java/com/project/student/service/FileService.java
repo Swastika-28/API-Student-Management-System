@@ -1,11 +1,14 @@
 package com.project.student.service;
 
+import com.project.student.repo.EducationRepo;
 import com.project.student.repo.FileRepo;
 import com.project.student.utility.Constants;
 import exception.FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,15 +25,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FileService {
-    @Value("${file.upload.dir}")
     private final FileRepo fileRepo;
+
     @Value("${file.upload.dir}")
     private String uploadDir;
+
     @Value("${file.max-size-bytes}")
     private Long maxSizeBytes;
 
+    private final EducationRepo educationRepo;
 
-    public String storeFile(InputStream inputStream, String originalFileName) {
+    public ResponseEntity<?> storeFile(InputStream inputStream, String originalFileName, Long studentId) {
+        if (educationRepo.countSId(studentId) == 0) {
+            throw new FileStorageException("Invalid Student id ");
+        }
+
         if (originalFileName.isEmpty() || originalFileName.contains("..")) {
             throw new FileStorageException("Invalid file path sequence or file name");
         }
@@ -65,8 +74,10 @@ public class FileService {
         } catch (IOException e) {
             throw new FileStorageException("Couldn't store file " + e.getMessage());
         }
-        log.info("Orinal file {} stored as {}", originalFileName, uniqueFileName);
-        return uniqueFileName;
+        educationRepo.uploadDoc(studentId, uniqueFileName);
+
+        log.info("Original file {} stored as {}", originalFileName, uniqueFileName);
+        return ResponseEntity.status(HttpStatus.OK).body("File upload successful\n file path=" + targetLocation);
     }
 
     public File loadFile(String fileName) {
@@ -76,4 +87,5 @@ public class FileService {
         }
         return file;
     }
+
 }

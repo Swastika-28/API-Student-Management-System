@@ -2,26 +2,30 @@ package com.project.student.controller;
 
 import com.project.student.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.InputStream;
 
-
-@RequestMapping("/api-grad/file")
+@RestController
+@RequestMapping("/file")
+@RequiredArgsConstructor
 public class DownloadUploadController {
 
-    private FileService fileService;
-    @PostMapping("/upload")
-    public ResponseEntity<String> upload(HttpServletRequest httpServletRequest, @RequestHeader("File-Name") String  filaName){
-        try(InputStream inputStream=httpServletRequest.getInputStream()) {
-            if(inputStream==null){
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Input Stream is empty");
+    private final FileService fileService;
+
+    @PostMapping("/upload/{studentId}")
+    public ResponseEntity<?> upload(HttpServletRequest httpServletRequest, @PathVariable Long studentId, @RequestHeader("File-Name") String filaName) {
+        try (InputStream inputStream = httpServletRequest.getInputStream()) {
+            if (studentId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No student enrolled");
             }
-            String savedFileName=
+            return fileService.storeFile(inputStream, filaName, studentId);
+        } catch (Exception e) {
+            throw new RuntimeException("Wrong upload");
         }
+
     }
 }
