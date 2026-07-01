@@ -24,7 +24,7 @@ public class DownloadUploadController {
             }
             return fileService.storeFile(inputStream, filaName, studentId);
         } catch (Exception e) {
-            throw new RuntimeException("Wrong upload..");
+            throw new RuntimeException("Wrong upload.."+e);
         }
 
     }

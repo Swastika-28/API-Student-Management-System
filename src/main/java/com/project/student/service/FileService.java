@@ -6,6 +6,7 @@ import com.project.student.utility.Constants;
 import exception.FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class FileService {
             throw new FileStorageException("Invalid Student id ");
         }
 
-        if (originalFileName.isEmpty() || originalFileName.contains("..")) {
+        if (originalFileName==null||originalFileName.isEmpty() || originalFileName.contains("..")) {
             throw new FileStorageException("Invalid file path sequence or file name");
         }
         int dotIndex = originalFileName.lastIndexOf(".");
@@ -49,14 +50,15 @@ public class FileService {
         }
         String ext = originalFileName.substring(dotIndex + 1).toLowerCase();
         if (!Constants.ALLOWED_EXTENSION.contains(ext)) {
-            throw new FileStorageException("Invalid Extension . Only" + Constants.ALLOWED_EXTENSION.stream().collect(Collectors.joining(",")) + " are allowed");
+            throw new FileStorageException("Invalid Extension . Only " + Constants.ALLOWED_EXTENSION.stream().collect(Collectors.joining(",")) + " are allowed");
         }
         String uniqueFileName = UUID.randomUUID().toString() + "." + ext;
         Path targetLocation;
+        Path targetFilePath;
         try {
             targetLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
             Files.createDirectories(targetLocation);
-            Path targetFilePath = targetLocation.resolve(uniqueFileName);
+            targetFilePath = targetLocation.resolve(uniqueFileName);
 
             File targetFile = targetFilePath.toFile();
 
@@ -77,7 +79,7 @@ public class FileService {
         educationRepo.uploadDoc(studentId, uniqueFileName);
 
         log.info("Original file {} stored as {}", originalFileName, uniqueFileName);
-        return ResponseEntity.status(HttpStatus.OK).body("File upload successful\n file path=" + targetLocation);
+        return ResponseEntity.status(HttpStatus.OK).body("File upload successful\n file path=" + targetFilePath);
     }
 
     public File loadFile(String fileName) {
