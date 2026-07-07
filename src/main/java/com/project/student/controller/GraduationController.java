@@ -29,6 +29,7 @@ public class GraduationController {
 
 
 
+   
     @GetMapping("/transcript/{sId}")
     public ResponseEntity<byte[]> downloadTranscript(@PathVariable Long sId){
         byte[] pdf= graduationService.getStudentTranscript();
