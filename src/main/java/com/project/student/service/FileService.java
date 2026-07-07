@@ -6,9 +6,12 @@ import com.project.student.utility.Constants;
 import exception.FileStorageException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.input.BoundedInputStream;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +44,7 @@ public class FileService {
             throw new FileStorageException("Invalid Student id ");
         }
 
-        if (originalFileName==null||originalFileName.isEmpty() || originalFileName.contains("..")) {
+        if (originalFileName == null || originalFileName.isEmpty() || originalFileName.contains("..")) {
             throw new FileStorageException("Invalid file path sequence or file name");
         }
         int dotIndex = originalFileName.lastIndexOf(".");
@@ -90,4 +93,23 @@ public class FileService {
         return file;
     }
 
+    public ResponseEntity<Resource> viewFile(Long sId) throws IOException {
+        String fileName = educationRepo.getFileForStudent(sId);
+        File file = fileRepo.getFile(uploadDir, fileName);
+
+        if (!fileRepo.fileExists(file)) {
+            throw new FileStorageException("File not found " + fileName);
+        }
+        Resource resource = new FileSystemResource(file);
+        String contentType = Files.probeContentType(file.toPath());
+        if (contentType == null) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        return ResponseEntity.ok().
+                header(HttpHeaders.CONTENT_DISPOSITION, fileName)
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
+    }
 }
+
+

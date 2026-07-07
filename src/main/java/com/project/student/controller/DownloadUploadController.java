@@ -3,10 +3,12 @@ package com.project.student.controller;
 import com.project.student.service.FileService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 @RestController
@@ -24,8 +26,14 @@ public class DownloadUploadController {
             }
             return fileService.storeFile(inputStream, filaName, studentId);
         } catch (Exception e) {
-            throw new RuntimeException("Wrong upload.."+e);
+            throw new RuntimeException("Wrong upload.." + e);
         }
 
     }
+
+    @GetMapping("/view/{sId}")
+    public ResponseEntity<Resource> viewFile(@PathVariable Long sId) throws IOException {
+        return fileService.viewFile(sId);
+    }
+
 }
