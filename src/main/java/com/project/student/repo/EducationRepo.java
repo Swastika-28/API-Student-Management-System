@@ -3,6 +3,7 @@ package com.project.student.repo;
 import com.project.student.dto.GradDetailsDto;
 import com.project.student.dto.StudentReport;
 import com.project.student.mapper.StudentResultSetExtractor;
+import exception.FileStorageException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -124,6 +125,60 @@ public class EducationRepo {
         return db.query(sql, new StudentResultSetExtractor());
     }
 
+    public Integer countSId(Long sId) {
+        String sql = "SELECT COUNT(*) FROM students  " +
+                "WHERE student_id=:student_id";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", sId);
+        return db.queryForObject(sql, param, Integer.class);
+    }
+
+    public void uploadDoc(Long student_id, String additional_documents) {
+        String sql = "UPDATE students " +
+                "SET additional_documents=:additional_documents" +
+                " WHERE student_id=:student_id";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", student_id);
+        param.addValue("additional_documents", additional_documents);
+        db.update(sql, param);
+    }
+
+    public String getFileForStudent(Long sId) {
+        String sql = "SELECT additional_documents FROM students " +
+                "WHERE student_id=:student_id";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", sId);
+        RowMapper<String> mapper = (rs, rowNum) -> rs.getString("additional_documents");
+        List<String> res = db.query(sql, param, mapper);
+        if (!res.isEmpty() && res.get(0) != null) {
+            return res.get(0);
+        } else {
+            throw new FileStorageException("No file for student " + sId);
+        }
+    }
+    public void saveDocument(Long studentId, String fileName) {
+        String sql = "INSERT INTO student_documents (file_name, student_id) VALUES (:file_name, :student_id)";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", studentId);
+        param.addValue("file_name", fileName);
+        db.update(sql, param);
+
+    }
+    public List<String> listFiles(Long student_id) {
+        String sql = "SELECT file_name FROM student_documents WHERE student_id=:student_id";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", student_id);
+        return db.queryForList(sql, param, String.class);
+    }
+
+    public boolean isFileOwnedByStudent(Long studentId, String fileName) {
+        String sql = "SELECT COUNT(*) FROM student_documents WHERE student_id = :student_id AND file_name = :file_name";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", studentId);
+        param.addValue("file_name", fileName);
+        Integer count = db.queryForObject(sql, param, Integer.class);
+        return count != null && count > 0;
+    }
 
 
 }
