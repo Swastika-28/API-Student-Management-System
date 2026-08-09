@@ -1,5 +1,6 @@
 package com.project.student.repo;
 
+import com.project.student.dto.FileDetailsDto;
 import com.project.student.dto.GradDetailsDto;
 import com.project.student.dto.StudentReport;
 import com.project.student.mapper.StudentResultSetExtractor;
@@ -11,6 +12,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -25,6 +27,13 @@ public class EducationRepo {
         gradDetailsDto.setGrade(rs.getDouble("final_grade"));
         gradDetailsDto.setCompletionDate(rs.getObject("completion_date", LocalDate.class));
         return gradDetailsDto;
+    };
+    private static final RowMapper<FileDetailsDto> mapper1 = (rs, rownum) -> {
+        FileDetailsDto fileDetailsDto = new FileDetailsDto();
+        fileDetailsDto.setFilename(rs.getString("file_name"));
+        fileDetailsDto.setOriginalFilename(rs.getString("originalFileName"));
+        fileDetailsDto.setDate(rs.getObject("uploadDateTime", LocalDate.class));
+        return fileDetailsDto;
     };
 
 
@@ -156,13 +165,15 @@ public class EducationRepo {
             throw new FileStorageException("No file for student " + sId);
         }
     }
-    public void saveDocument(Long studentId, String fileName) {
-        String sql = "INSERT INTO student_documents (file_name, student_id) VALUES (:file_name, :student_id)";
+    public void saveDocument(Long studentId, String fileName, String originalFileName, LocalDateTime uploadDateTime) {
+        String sql = "INSERT INTO student_documents (file_name, student_id, originalFileName, uploadDateTime) " +
+                "VALUES (:file_name, :student_id, :originalFileName, :uploadDateTime)";
         MapSqlParameterSource param = new MapSqlParameterSource();
         param.addValue("student_id", studentId);
         param.addValue("file_name", fileName);
+        param.addValue("originalFileName", originalFileName);
+        param.addValue("uploadDateTime", uploadDateTime);
         db.update(sql, param);
-
     }
     public List<String> listFiles(Long student_id) {
         String sql = "SELECT file_name FROM student_documents WHERE student_id=:student_id";
@@ -179,6 +190,15 @@ public class EducationRepo {
         Integer count = db.queryForObject(sql, param, Integer.class);
         return count != null && count > 0;
     }
+
+    public List<FileDetailsDto> newListFiles(Long student_id) {
+        String sql = "SELECT file_name, originalFileName, uploadDateTime FROM student_documents WHERE student_id=:student_id";
+        MapSqlParameterSource param = new MapSqlParameterSource();
+        param.addValue("student_id", student_id);
+        return db.query(sql, param, mapper1);
+    }
+
+
 
 
 }

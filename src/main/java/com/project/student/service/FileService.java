@@ -1,5 +1,6 @@
 package com.project.student.service;
 
+import com.project.student.dto.FileDetailsDto;
 import com.project.student.repo.EducationRepo;
 import com.project.student.repo.FileRepo;
 import utility.Constants;
@@ -10,18 +11,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import java.nio.file.StandardCopyOption;
+
 import java.nio.file.StandardCopyOption;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,8 +43,10 @@ public class FileService {
         }
 
         for (MultipartFile file : files) {
+            String originalFileName=file.getOriginalFilename();
             String uniqueFileName = saveToDiskOnly(file);
-            educationRepo.saveDocument(studentId, uniqueFileName);
+            LocalDateTime uploadDateTime = LocalDateTime.now();
+            educationRepo.saveDocument(studentId, uniqueFileName,originalFileName,uploadDateTime);
         }
     }
 
@@ -99,6 +99,12 @@ public class FileService {
         return file;
     }
 
+    public List<FileDetailsDto> newListAllFiles(Long studentId){
+        if(educationRepo.countSId(studentId)==0){
+            throw new FileStorageException("Invalid Student_id");
+        }
+        return educationRepo.newListFiles(studentId);
+    }
 
 
 }

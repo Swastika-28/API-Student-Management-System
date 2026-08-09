@@ -1,9 +1,9 @@
 package com.project.student.controller;
 
+import com.project.student.dto.FileDetailsDto;
 import com.project.student.service.FileService;
 import exception.FileStorageException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +51,14 @@ public class DownloadUploadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    @GetMapping("/new-list-files/{studentId}")
+    public List<FileDetailsDto> newListFileForStudent(@PathVariable Long studentId) {
+        return fileService.newListAllFiles(studentId);
+        }
+
+
+
 
 
 
