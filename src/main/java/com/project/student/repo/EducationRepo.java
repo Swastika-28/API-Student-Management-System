@@ -165,6 +165,7 @@ public class EducationRepo {
             throw new FileStorageException("No file for student " + sId);
         }
     }
+
     public void saveDocument(Long studentId, String fileName, String originalFileName, LocalDateTime uploadDateTime) {
         String sql = "INSERT INTO student_documents (file_name, student_id, originalFileName, uploadDateTime) " +
                 "VALUES (:file_name, :student_id, :originalFileName, :uploadDateTime)";
@@ -175,6 +176,7 @@ public class EducationRepo {
         param.addValue("uploadDateTime", uploadDateTime);
         db.update(sql, param);
     }
+
     public List<String> listFiles(Long student_id) {
         String sql = "SELECT file_name FROM student_documents WHERE student_id=:student_id";
         MapSqlParameterSource param = new MapSqlParameterSource();
@@ -197,8 +199,6 @@ public class EducationRepo {
         param.addValue("student_id", student_id);
         return db.query(sql, param, mapper1);
     }
-
-
 
 
 }

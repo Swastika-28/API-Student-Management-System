@@ -3,7 +3,9 @@ package com.project.student.controller;
 import com.project.student.dto.FileDetailsDto;
 import com.project.student.service.FileService;
 import exception.FileStorageException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -55,11 +59,25 @@ public class DownloadUploadController {
     @GetMapping("/new-list-files/{studentId}")
     public List<FileDetailsDto> newListFileForStudent(@PathVariable Long studentId) {
         return fileService.newListAllFiles(studentId);
+    }
+
+    @PostMapping("/upload/{studentId}")
+    public ResponseEntity<?> upload(HttpServletRequest httpServletRequest, @PathVariable Long studentId, @RequestHeader("File-Name") String filaName) {
+        try (InputStream inputStream = httpServletRequest.getInputStream()) {
+            if (studentId == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No student enrolled");
+            }
+            return fileService.storeFile(inputStream, filaName, studentId);
+        } catch (Exception e) {
+            throw new RuntimeException("Wrong upload.." + e);
         }
 
+    }
 
-
-
+    @GetMapping("/view/{sId}")
+    public ResponseEntity<Resource> viewFile(@PathVariable Long sId) throws IOException {
+        return fileService.viewFile(sId);
+    }
 
 
 }
